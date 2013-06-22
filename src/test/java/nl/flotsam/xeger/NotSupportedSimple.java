@@ -26,34 +26,34 @@ import org.junit.runners.Parameterized.Parameters;
 import static org.junit.Assert.assertFalse;
 
 @RunWith(value = Parameterized.class)
-    public class NotSupportedSimple {
+public class NotSupportedSimple {
 
-        private String regex;
+    private String regex;
 
-        public NotSupportedSimple(String regexToTest) {
-            this.regex = regexToTest;
-        }
-
-        @Parameters
-        public static Collection<Object[]> data() {
-            Object[][] data = new Object[][] { 
-                    { "\\d\\d" }, 
-                    { "\\d{3}" },
-                    { "\b(\\w+)\\s+\\1\b " },
-                    { "([,\\s])?" },
-                    { "a|b" },
-            };
-            return Arrays.asList(data);
-        }
-
-        @Test
-            public void shouldNotGenerateTextCorrectly() {
-                Xeger generator = new Xeger(regex);
-                for (int i = 0; i < 100; i++) {
-                    String text = generator.generate();
-                    assertFalse("text generated: " + text 
-                        + " does match regexp: " +regex, text.matches(regex));
-                }
-            }
-
+    public NotSupportedSimple(String regexToTest) {
+        this.regex = regexToTest;
     }
+
+    @Parameters
+    public static Collection<Object[]> data() {
+        Object[][] data = new Object[][] { 
+                { "\\d\\d" }, 
+                { "\\d{3}" },
+                { "\b(\\w+)\\s+\\1\b " },
+                { "([,\\s])?" },
+                { "a|b" },
+        };
+        return Arrays.asList(data);
+    }
+
+    @Test
+    public void shouldNotGenerateTextCorrectly() {
+        Xeger generator = new Xeger(regex);
+        for (int i = 0; i < 100; i++) {
+            String text = generator.generate();
+            assertFalse("text generated: " + text 
+                + " does match regexp: " +regex, text.matches(regex));
+        }
+    }
+
+}
