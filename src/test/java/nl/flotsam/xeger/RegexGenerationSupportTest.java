@@ -34,6 +34,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class RegexGenerationSupportTest {
 
+    public static final int MAX_ITERATIONS = 100;
     private String regex;
     private boolean working;
     private static final Logger logger = Logger
@@ -65,6 +66,11 @@ public class RegexGenerationSupportTest {
                 {false, "[a-z&&[def]]"},
                 {false, "[a-z&&[^bc]]"},
                 {false, "[a-z&&[^m-p]]"},
+                {true, "a|b"},
+                {false, "a||b"},
+                {false, "a|"},
+                {false, "|b"},
+
                 // predefined character classes
                 {true, "."},
                 {false, "\\d"},
@@ -169,7 +175,7 @@ Special constructs (non-capturing)
             Xeger generator = new Xeger(regex);
             boolean alwaysCorrect = true;
             String regexCleaned = regex.replace("\\", "");
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < MAX_ITERATIONS; i++) {
                 String text = generator.generate();
 
                 if (logger.isLoggable(Level.INFO)) {
