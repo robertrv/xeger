@@ -2,3 +2,6 @@ target/
 *.swp
 *.class
 .idea/
+.classpath
+.project
+.settings/
