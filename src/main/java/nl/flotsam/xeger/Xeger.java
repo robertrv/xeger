@@ -79,7 +79,7 @@ public class Xeger {
     }
 
     private void generate(StringBuilder builder, State state) {
-        List<Transition> transitions = state.getSortedTransitions(true);
+        List<Transition> transitions = state.getSortedTransitions(false);
         if (transitions.size() == 0) {
             assert state.isAccept();
             return;
