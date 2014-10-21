@@ -37,6 +37,14 @@ public class Xeger {
     
     private long desiredMinLength=-1;
     private long desiredMaxLength=-1;
+    private int depth = 0;
+
+    /**
+     * As we are dealing with DFA and we decide what transition to take based on weight that would cause invinite loop
+     * we are adding a maximum number of loops.
+     * TODO: Change this dirty solution to solve properly the infinite loop.
+     */
+    private static final int MAX_LOOPS = 8;
 
     /**
      * Constructs a new instance, accepting the regular expression and the randomizer.
@@ -112,15 +120,27 @@ public class Xeger {
         do {
             discardedWeight+=weightings[++index];
         } while (discardedWeight < option);
-        
+
+        if (depth > getMaxLoops()) {
+            index = rotateIndex(index, transitions.size()); // XXX: What happens if there is just one state to go to? Should stop anyway.
+        }
+
+
         // Moving on to next transition
         Transition transition = transitions.get(index);
         appendChoice(builder, transition);
+        depth++;
+        // TODO robertrv : Transform to iterative to avoid StackOverflow
+
         generate(builder, transition.getDest());
+        depth--;
     }
 
-        
-    
+    private int rotateIndex(int index, int size) {
+        return (index + 1) % (size -1);
+    }
+
+
     private void appendChoice(StringBuilder builder, Transition transition) {
         char c = (char) XegerUtils.getRandomInt(transition.getMin(), transition.getMax(), random);
         builder.append(c);
@@ -141,6 +161,20 @@ public class Xeger {
             //For example [A-Z]* will be zero or one characters most of the time.
             return random.nextBoolean();
         }
+    }
+
+    private int getMaxLoops() {
+        int maxLoops = MAX_LOOPS;
+        String value = System.getProperty("nl.flotsam.xeger.MAX_LOOPS");
+        if (value != null) {
+            try {
+                maxLoops = Integer.valueOf(value);
+            } catch (NumberFormatException ignored) {
+                System.err.println("CAUTION: the value your are using for MAX_LOOPS is not an valid integer (" +
+                        value + "), now using default: " + MAX_LOOPS);
+            }
+        }
+        return maxLoops;
     }
 
 }

@@ -48,6 +48,8 @@ public class RegexGenerationSupportTest {
     @Parameters
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
+                {true, ""},
+
                 // Predefined character classes does not work
                 {false, "\\d\\d"},
                 {false, "\\d{3}"},
@@ -104,16 +106,18 @@ public class RegexGenerationSupportTest {
                 {false, "\\p{Sc}"},
                 {false, "\\P{InGreek}"},
                 {false, "\\[\\p{L}&&[^\\p{Lu}]]"},
+                // Boundary matchers
+                {false, "^aaaa"},
+                {false, "^abc$"},
+                {false, "a.*b$"},
+                {false, "\\b"},
+                {false, "\\B"},
+                {false, "\\A"},
+                {false, "\\G"},
+                {false, "\\Z"},
+                {false, "\\z"},
+
                 /*     TODO
-// Boundary matchers
-{false, "^aaaa"},
-{false, "a.*b$"},
-{false, "\\b"},
-{false, "\\B"},
-{false, "\\A"},
-{false, "\\G"},
-{false, "\\Z"},
-{false, "\\z"},
 
 
 Greedy quantifiers
@@ -164,7 +168,6 @@ Special constructs (non-capturing)
 (?>X)	X, as an independent, non-capturing group
                  */
 
-                {true, ""},
         };
         return Arrays.asList(data);
     }
