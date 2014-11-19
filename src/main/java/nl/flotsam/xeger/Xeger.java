@@ -137,7 +137,11 @@ public class Xeger {
     }
 
     private int rotateIndex(int index, int size) {
-        return (index + 1) % (size -1);
+        if ((size - 1) == 0) {
+            return 0; // There is solution, we have to return something. TODO: Fix it!
+        } else {
+            return (index + 1) % (size -1);
+        }
     }
 
 

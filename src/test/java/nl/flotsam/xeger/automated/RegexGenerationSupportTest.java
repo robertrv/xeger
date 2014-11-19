@@ -16,9 +16,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package nl.flotsam.xeger;
+package nl.flotsam.xeger.automated;
 
+import nl.flotsam.xeger.Xeger;
+import org.junit.Rule;
 import org.junit.Test;
+import org.junit.rules.ExpectedException;
 import org.junit.runner.RunWith;
 import org.junit.runners.Parameterized;
 import org.junit.runners.Parameterized.Parameters;
@@ -35,95 +38,120 @@ import static org.junit.Assert.assertTrue;
 public class RegexGenerationSupportTest {
 
     public static final int MAX_ITERATIONS = 100;
-    private String regex;
-    private boolean working;
-    private static final Logger logger = Logger
-            .getLogger(RegexGenerationSupportTest.class.getSimpleName());
+    private Class<? extends Throwable> expected;
+    private final String regex;
+    private final boolean working;
+    private static final Logger logger = Logger.getLogger(RegexGenerationSupportTest.class.getSimpleName());
 
-    public RegexGenerationSupportTest(boolean working, String regexToTest) {
+    @Rule
+    public ExpectedException exceptionRule = ExpectedException.none();
+
+    public RegexGenerationSupportTest(boolean working, String regexToTest, Class<? extends Throwable> expected) {
         this.regex = regexToTest;
         this.working = working;
+        this.expected = expected;
     }
 
-    @Parameters
+    @Parameters(name="Regexp {1} should work? {0}")
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-                {true, ""},
+                {true, "", null},
 
                 // Predefined character classes does not work
-                {false, "\\d\\d"},
-                {false, "\\d{3}"},
-                {false, "\b(\\w+)\\s+\\1\b "},
+                {false, "\\d\\d", null},
+                {false, "\\d{3}", null},
+                {false, "\b(\\w+)\\s+\\1\b ", null},
                 // Supported elements from java api
-                {true, "[ab]{4,6}c"},
-                {true, "a|b"},
-                {true, "[abc]"},
-                {true, "[^abc]"},
-                {true, "a+"},
-                {true, "a*"},
-                {true, "ab"},
-                {true, "[a-zA-Z]"},
+                {true, "[ab]{4,6}c", null},
+                {true, "a|b", null},
+                {true, "[abc]", null},
+                {true, "[^abc]", null},
+                {true, "a+", null},
+                {true, "a*", null},
+                {true, "ab", null},
+                {true, "[a-zA-Z]", null},
                 // union and intersection does not works
-                {false, "[a-d[m-p]]"},
-                {false, "[a-z&&[def]]"},
-                {false, "[a-z&&[^bc]]"},
-                {false, "[a-z&&[^m-p]]"},
-                {true, "a|b"},
-                {false, "a||b"},
-                {false, "a|"},
-                {false, "|b"},
+                {false, "[a-d[m-p]]", null},
+                {false, "[a-z&&[def]]", null},
+                {false, "[a-z&&[^bc]]", null},
+                {false, "[a-z&&[^m-p]]", null},
+                {true, "a|b", null},
+                {false, "a||b", null},
+                {false, "a|", null},
+                {false, "|b", null},
 
                 // predefined character classes
-                {true, "."},
-                {false, "\\d"},
-                {false, "\\D"},
-                {false, "\\s"},
-                {false, "\\S"},
-                {false, "\\w"},
-                {false, "\\W"},
+                {true, ".", null},
+                {false, "\\d", null},
+                {false, "\\D", null},
+                {false, "\\s", null},
+                {false, "\\S", null},
+                {false, "\\w", null},
+                {false, "\\W", null},
                 // POSIX character classes
-                {false, "\\p{Lower}"},
-                {false, "\\p{Upper}"},
-                {false, "\\p{ASCII}"},
-                {false, "\\p{Alpha}"},
-                {false, "\\p{Digit}"},
-                {false, "\\p{Alnum}"},
-                {false, "\\p{Punct}"},
-                {false, "\\p{Graph}"},
-                {false, "\\p{Print}"},
-                {false, "\\p{Blank}"},
-                {false, "\\p{Cntrl}"},
-                {false, "\\p{XDigit}"},
-                {false, "\\p{Space}"},
+                {false, "\\p{Lower}", null},
+                {false, "\\p{Upper}", null},
+                {false, "\\p{ASCII}", null},
+                {false, "\\p{Alpha}", null},
+                {false, "\\p{Digit}", null},
+                {false, "\\p{Alnum}", null},
+                {false, "\\p{Punct}", null},
+                {false, "\\p{Graph}", null},
+                {false, "\\p{Print}", null},
+                {false, "\\p{Blank}", null},
+                {false, "\\p{Cntrl}", null},
+                {false, "\\p{XDigit}", null},
+                {false, "\\p{Space}", null},
                 // java.lang.Character classes
-                {false, "\\p{javaLowerCase}"},
-                {false, "\\p{javaUpperCase}"},
-                {false, "\\p{javaWhitespace}"},
-                {false, "\\p{javaMirrored}"},
+                {false, "\\p{javaLowerCase}", null},
+                {false, "\\p{javaUpperCase}", null},
+                {false, "\\p{javaWhitespace}", null},
+                {false, "\\p{javaMirrored}", null},
                 // Classes for Unicode blocks and categories
-                {false, "\\p{InGreek}"},
-                {false, "\\p{Lu}"},
-                {false, "\\p{Sc}"},
-                {false, "\\P{InGreek}"},
-                {false, "\\[\\p{L}&&[^\\p{Lu}]]"},
+                {false, "\\p{InGreek}", null},
+                {false, "\\p{Lu}", null},
+                {false, "\\p{Sc}", null},
+                {false, "\\P{InGreek}", null},
+                {false, "\\[\\p{L}&&[^\\p{Lu}]]", null},
                 // Boundary matchers
-                {false, "^aaaa"},
-                {false, "^abc$"},
-                {false, "a.*b$"},
-                {false, "\\b"},
-                {false, "\\B"},
-                {false, "\\A"},
-                {false, "\\G"},
-                {false, "\\Z"},
-                {false, "\\z"},
+                {false, "^aaaa", null},
+                {false, "^abc$", null},
+                {false, "a.*b$", null},
+                {false, "\\b", null},
+                {false, "\\B", null},
+                {false, "\\A", null},
+                {false, "\\G", null},
+                {false, "\\Z", null},
+                {false, "\\z", null},
+
+                // Optionals
+                {true, "A?BC", null},
+                {true, "AB?C", null},
+                {true, "ABC?", null},
+
+                /*
+                // Greedy quantifiers
+                {false, "A*BC", StackOverflowError.class},
+                {false, "AB*C", StackOverflowError.class},
+                {false, "ABC*", StackOverflowError.class},
+
+                {true, "A+BC", null},
+                {true, "AB+C", null},
+                {true, "ABC+", null},
+                {true, "A{3}BC", null},
+                {true, "AB{3}C", null},
+                {true, "ABC{3}", null},
+                {true, "A{0}BC", null},
+                {true, "AB{0}C", null},
+                {true, "ABC{0}", null},
+                {true, "A{2}BC{2}", null},
+                {true, "A{2}BC{2}", null},
+                 */
+
 
                 /*     TODO
 
 
-Greedy quantifiers
-X?	X, once or not at all
-X*	X, zero or more times
-X+	X, one or more times
 X{n}	X, exactly n times
 X{n,}	X, at least n times
 X{n,m}	X, at least n but not more than m times
@@ -174,6 +202,10 @@ Special constructs (non-capturing)
 
     @Test
     public void shouldNotGenerateTextCorrectly() throws Exception {
+
+        if (expected != null) {
+            exceptionRule.expect(expected);
+        }
         try {
             Xeger generator = new Xeger(regex);
             boolean alwaysCorrect = true;
@@ -218,5 +250,4 @@ Special constructs (non-capturing)
         }
 
     }
-
 }
