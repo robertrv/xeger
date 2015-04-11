@@ -18,25 +18,21 @@
  */
 package nl.flotsam.xeger;
 
-import java.util.Random;
-
 /**
- * Potentially a huge collection of utilities; now limited to only one method.
+ * A command line utility to simply test different parameters with xeger.
+ *
+ * Sample of usage with maven:
+ * <code>mvn exec:java -Dexec.mainClass="nl.flotsam.xeger.XegerTester"  -Dexec.args="ab ab*b"</code>
  */
-public class XegerUtils {
+public class XegerTester {
+    public static void main(String[] args) {
+        if (args.length == 0) {
+            System.err.println("Please, specify pattern(s) to generate as command line arguments.");
+        }
 
-    /**
-     * Generates a random number within the given bounds.
-     *
-     * @param min The minimum number (inclusive).
-     * @param max The maximum number (inclusive).
-     * @param random The object used as the randomizer.
-     * @return A random number in the given range.
-     */
-    public final static int getRandomInt(int min, int max, Random random) {
-        //Now uses random.nextInt as it guarantees a uniform distribution       
-        int maxForRandom = max - min + 1;
-        return random.nextInt(maxForRandom) + min;
+        for (String pattern : args) {
+            Xeger worker = new Xeger(pattern);
+            System.out.println("For pattern " + pattern + " generated: " + worker.generate());
+        }
     }
-
 }
