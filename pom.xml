@@ -18,7 +18,10 @@
         </developer>
     </developers>
     <properties>
-      <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <clamshellcli.groupId>org.clamshellcli</clamshellcli.groupId>
+        <clamshellcli.version>0.5.2</clamshellcli.version>
+        <clamshellcli.repo>http://s3.amazonaws.com/repo.clamshellcli.org/release/</clamshellcli.repo>
     </properties>
     <scm>
         <url>https://github.com/robertrv/xeger</url>
@@ -30,6 +33,13 @@
             <distribution>repo</distribution>
         </license>
     </licenses>
+    <repositories>
+        <repository>
+            <id>clamshellcli.repo</id>
+            <name>Clamshell-Cli Repository</name>
+            <url>${clamshellcli.repo}</url>
+        </repository>
+    </repositories>
     <dependencies>
         <dependency>
             <groupId>junit</groupId>
@@ -60,6 +70,21 @@
             <version>1.14.8</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>${clamshellcli.groupId}</groupId>
+            <artifactId>clamshell-api</artifactId>
+            <version>${clamshellcli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${clamshellcli.groupId}</groupId>
+            <artifactId>clamshell-impl-core</artifactId>
+            <version>${clamshellcli.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>${clamshellcli.groupId}</groupId>
+            <artifactId>clamshell-launcher</artifactId>
+            <version>${clamshellcli.version}</version>
+        </dependency>
     </dependencies>
     <build>
         <plugins>
@@ -69,6 +94,19 @@
                 <configuration>
                     <source>1.5</source>
                     <target>1.5</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-assembly-plugin</artifactId>
+                <configuration>
+                    <archive>
+                        <manifest>
+                            <mainClass>cli.Run</mainClass>
+                        </manifest>
+                    </archive>
+                    <descriptorRefs>
+                        <descriptorRef>jar-with-dependencies</descriptorRef>
+                    </descriptorRefs>
                 </configuration>
             </plugin>
             <plugin>
@@ -90,16 +128,16 @@
                     </execution>
                 </executions>
             </plugin>
-            <!-- Cobertura plugins --> 
+            <!-- Cobertura plugins -->
             <plugin>
                 <groupId>org.eluder.coveralls</groupId>
                 <artifactId>coveralls-maven-plugin</artifactId>
                 <version>2.0.0</version>
-        <configuration>
-        <serviceJobId>robertrv/xeger</serviceJobId>
-        </configuration>
-       </plugin>
-           <plugin>
+                <configuration>
+                    <serviceJobId>robertrv/xeger</serviceJobId>
+                </configuration>
+            </plugin>
+            <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>cobertura-maven-plugin</artifactId>
                 <version>2.5.2</version>
