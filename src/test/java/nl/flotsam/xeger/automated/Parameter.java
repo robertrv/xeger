@@ -21,14 +21,21 @@ package nl.flotsam.xeger.automated;
 import lombok.Data;
 import lombok.experimental.Builder;
 
-/**
- * Created by robertrv
- */
 @Builder
 @Data
 public class Parameter {
-    private final boolean works;
+    public static final int MAX_ITERATIONS = 100;
+
+    private final Boolean works;
     private final String regex;
     private Class<? extends Throwable> expected;
-    private int iterationsOverride;
+    private Integer iterationsOverride;
+
+    public int iterations() {
+        if (iterationsOverride != null) {
+            return iterationsOverride;
+        } else {
+            return MAX_ITERATIONS;
+        }
+    }
 }

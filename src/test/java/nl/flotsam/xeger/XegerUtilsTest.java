@@ -18,24 +18,19 @@
  */
 package nl.flotsam.xeger;
 
-import org.junit.Ignore;
+import org.assertj.core.api.Assertions;
 import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.hamcrest.Matchers;
-import dk.brics.automaton.RegExp;
 
 import java.util.Random;
 
 public class XegerUtilsTest {
 
-    @Ignore("TODO make it work!")
     @Test
     public void shouldGenerateRandomNumberCorrectly() {
-        Random random = new Random();
         for (int i = 0; i < 100; i++) {
+            Random random = new Random();
             int number = XegerUtils.getRandomInt(3, 7, random);
-            assertThat(number, Matchers.greaterThanOrEqualTo(3));
-            assertThat(number, Matchers.lessThanOrEqualTo(7));
+            Assertions.assertThat(number).isBetween(3, 7);
         }
     }
 

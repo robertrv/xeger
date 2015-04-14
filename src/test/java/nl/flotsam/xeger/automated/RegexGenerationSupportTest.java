@@ -37,191 +37,157 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class RegexGenerationSupportTest {
 
-    public static final int MAX_ITERATIONS = 100;
-    private Class<? extends Throwable> expected;
-    private final String regex;
-    private final boolean working;
     private static final Logger logger = Logger.getLogger(RegexGenerationSupportTest.class.getSimpleName());
+
+    private final Parameter parameter;
 
     @Rule
     public ExpectedException exceptionRule = ExpectedException.none();
 
-    public RegexGenerationSupportTest(boolean working, String regexToTest, Class<? extends Throwable> expected) {
-        this.regex = regexToTest;
-        this.working = working;
-        this.expected = expected;
+    public RegexGenerationSupportTest(Parameter parameter) {
+        this.parameter = parameter;
     }
 
-    @Parameters(name="Regexp {1} should work? {0}")
+    @Parameters(name="{0}")
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
-                {true, "", null},
-
+                {Parameter.builder().works(true).regex("").build()},
                 // Predefined character classes does not work
-                {false, "\\d\\d", null},
-                {false, "\\d{3}", null},
-                {false, "\b(\\w+)\\s+\\1\b ", null},
+                {Parameter.builder().works(false).regex("\\d\\d").build()},
+                {Parameter.builder().works(false).regex("\\d{3}").build()},
+                {Parameter.builder().works(false).regex("\b(\\w+)\\s+\\1\b ").build()},
                 // Supported elements from java api
-                {true, "[ab]{4,6}c", null},
-                {true, "a|b", null},
-                {true, "[abc]", null},
-                {true, "[^abc]", null},
-                {true, "a+", null},
-                {true, "a*", null},
-                {true, "ab", null},
-                {true, "[a-zA-Z]", null},
+                {Parameter.builder().works(true).regex("[ab]{4,6}c").build()},
+                {Parameter.builder().works(true).regex("a|b").build()},
+                {Parameter.builder().works(true).regex("[abc]").build()},
+                {Parameter.builder().works(true).regex("[^abc]").build()},
+                {Parameter.builder().works(true).regex("a+").build()},
+                {Parameter.builder().works(true).regex("a*").build()},
+                {Parameter.builder().works(true).regex("ab").build()},
+                {Parameter.builder().works(true).regex("[a-zA-Z]").build()},
                 // union and intersection does not works
-                {false, "[a-d[m-p]]", null},
-                {false, "[a-z&&[def]]", null},
-                {false, "[a-z&&[^bc]]", null},
-                {false, "[a-z&&[^m-p]]", null},
-                {true, "a|b", null},
-                {false, "a||b", null},
-                {false, "a|", null},
-                {false, "|b", null},
-
+                {Parameter.builder().works(false).regex("[a-d[m-p]]").build()},
+                {Parameter.builder().works(false).regex("[a-z&&[def]]").build()},
+                {Parameter.builder().works(false).regex("[a-z&&[^bc]]").build()},
+                {Parameter.builder().works(false).regex("[a-z&&[^m-p]]").build()},
+                {Parameter.builder().works(false).regex("a||b").build()},
+                {Parameter.builder().works(false).regex("a|").build()},
+                {Parameter.builder().works(false).regex("|b").build()},
                 // predefined character classes
-                {true, ".", null},
-                {false, "\\d", null},
-                {false, "\\D", null},
-                {false, "\\s", null},
-                {false, "\\S", null},
-                {false, "\\w", null},
-                {false, "\\W", null},
+                {Parameter.builder().works(true).regex(".").build()},
+                {Parameter.builder().works(false).regex("\\d").build()},
+                {Parameter.builder().works(false).regex("\\D").build()},
+                {Parameter.builder().works(false).regex("\\s").build()},
+                {Parameter.builder().works(false).regex("\\S").build()},
+                {Parameter.builder().works(false).regex("\\w").build()},
+                {Parameter.builder().works(false).regex("\\W").build()},
                 // POSIX character classes
-                {false, "\\p{Lower}", null},
-                {false, "\\p{Upper}", null},
-                {false, "\\p{ASCII}", null},
-                {false, "\\p{Alpha}", null},
-                {false, "\\p{Digit}", null},
-                {false, "\\p{Alnum}", null},
-                {false, "\\p{Punct}", null},
-                {false, "\\p{Graph}", null},
-                {false, "\\p{Print}", null},
-                {false, "\\p{Blank}", null},
-                {false, "\\p{Cntrl}", null},
-                {false, "\\p{XDigit}", null},
-                {false, "\\p{Space}", null},
+                {Parameter.builder().works(false).regex("\\p{Lower}").build()},
+                {Parameter.builder().works(false).regex("\\p{Upper}").build()},
+                {Parameter.builder().works(false).regex("\\p{ASCII}").build()},
+                {Parameter.builder().works(false).regex("\\p{Alpha}").build()},
+                {Parameter.builder().works(false).regex("\\p{Digit}").build()},
+                {Parameter.builder().works(false).regex("\\p{Alnum}").build()},
+                {Parameter.builder().works(false).regex("\\p{Punct}").build()},
+                {Parameter.builder().works(false).regex("\\p{Graph}").build()},
+                {Parameter.builder().works(false).regex("\\p{Print}").build()},
+                {Parameter.builder().works(false).regex("\\p{Blank}").build()},
+                {Parameter.builder().works(false).regex("\\p{Cntrl}").build()},
+                {Parameter.builder().works(false).regex("\\p{XDigit}").build()},
+                {Parameter.builder().works(false).regex("\\p{Space}").build()},
                 // java.lang.Character classes
-                {false, "\\p{javaLowerCase}", null},
-                {false, "\\p{javaUpperCase}", null},
-                {false, "\\p{javaWhitespace}", null},
-                {false, "\\p{javaMirrored}", null},
+                {Parameter.builder().works(false).regex("\\p{javaLowerCase}").build()},
+                {Parameter.builder().works(false).regex("\\p{javaUpperCase}").build()},
+                {Parameter.builder().works(false).regex("\\p{javaWhitespace}").build()},
+                {Parameter.builder().works(false).regex("\\p{javaMirrored}").build()},
                 // Classes for Unicode blocks and categories
-                {false, "\\p{InGreek}", null},
-                {false, "\\p{Lu}", null},
-                {false, "\\p{Sc}", null},
-                {false, "\\P{InGreek}", null},
-                {false, "\\[\\p{L}&&[^\\p{Lu}]]", null},
+                {Parameter.builder().works(false).regex("\\p{InGreek}").build()},
+                {Parameter.builder().works(false).regex("\\p{Lu}").build()},
+                {Parameter.builder().works(false).regex("\\p{Sc}").build()},
+                {Parameter.builder().works(false).regex("\\P{InGreek}").build()},
+                {Parameter.builder().works(false).regex("\\[\\p{L}&&[^\\p{Lu}]]").build()},
                 // Boundary matchers
-                {false, "^aaaa", null},
-                {false, "^abc$", null},
-                {false, "a.*b$", null},
-                {false, "\\b", null},
-                {false, "\\B", null},
-                {false, "\\A", null},
-                {false, "\\G", null},
-                {false, "\\Z", null},
-                {false, "\\z", null},
-
+                {Parameter.builder().works(false).regex("^aaaa").build()},
+                {Parameter.builder().works(false).regex("^abc$").build()},
+                {Parameter.builder().works(false).regex("a.*b$").build()},
+                {Parameter.builder().works(false).regex("\\b").build()},
+                {Parameter.builder().works(false).regex("\\B").build()},
+                {Parameter.builder().works(false).regex("\\A").build()},
+                {Parameter.builder().works(false).regex("\\G").build()},
+                {Parameter.builder().works(false).regex("\\Z").build()},
+                {Parameter.builder().works(false).regex("\\z").build()},
                 // Optionals
-                {true, "A?BC", null},
-                {true, "AB?C", null},
-                {true, "ABC?", null},
+                {Parameter.builder().works(true).regex("A?BC").build()},
+                {Parameter.builder().works(true).regex("AB?C").build()},
+                {Parameter.builder().works(true).regex("ABC?").build()},
 
-                /*
                 // Greedy quantifiers
-                {false, "A*BC", StackOverflowError.class},
-                {false, "AB*C", StackOverflowError.class},
-                {false, "ABC*", StackOverflowError.class},
+                {Parameter.builder().works(false).regex("A*BC").iterationsOverride(10000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(false).regex("AB*C").iterationsOverride(10000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(true).regex("ABC*").build()},
 
-                {true, "A+BC", null},
-                {true, "AB+C", null},
-                {true, "ABC+", null},
-                {true, "A{3}BC", null},
-                {true, "AB{3}C", null},
-                {true, "ABC{3}", null},
-                {true, "A{0}BC", null},
-                {true, "AB{0}C", null},
-                {true, "ABC{0}", null},
-                {true, "A{2}BC{2}", null},
-                {true, "A{2}BC{2}", null},
-                 */
+                {Parameter.builder().works(false).regex("A+BC").iterationsOverride(1000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(false).regex("AB+C").iterationsOverride(1000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(true).regex("ABC+").build()},
+                {Parameter.builder().works(true).regex("A{3}BC").build()},
+                {Parameter.builder().works(true).regex("AB{3}C").build()},
+                {Parameter.builder().works(true).regex("ABC{3}").build()},
+                {Parameter.builder().works(true).regex("A{0}BC").build()},
+                {Parameter.builder().works(true).regex("AB{0}C").build()},
+                {Parameter.builder().works(true).regex("ABC{0}").build()},
+                {Parameter.builder().works(true).regex("A{2}BC{2}").build()},
+                {Parameter.builder().works(true).regex("X{2,}").build()},
+                {Parameter.builder().works(true).regex("X{1,5}").build()},
 
+                // Reluctant quantifiers
+                {Parameter.builder().works(true).regex("X{1,5}").build()},
+                {Parameter.builder().works(true).regex("X??").build()},
+                {Parameter.builder().works(true).regex("X*?").build()},
+                {Parameter.builder().works(false).regex("X+?").build()},
+                {Parameter.builder().works(false).regex("X{2}?").build()},
+                {Parameter.builder().works(false).regex("X{2,}?").build()},
+                {Parameter.builder().works(false).regex("X{2,5}?").build()},
 
-                /*     TODO
+                //Possessive quantifiers
+                {Parameter.builder().works(false).regex("X?+").build()},
+                {Parameter.builder().works(true).regex("X*+").build()},
+                {Parameter.builder().works(true).regex("X++").build()},
+                {Parameter.builder().works(false).regex("X{2}+").build()},
+                {Parameter.builder().works(true).regex("X{0}+").build()},
+                {Parameter.builder().works(true).regex("X{2,}+").build()},
+                {Parameter.builder().works(true).regex("X{0,}+").build()},
+                {Parameter.builder().works(false).regex("X{1,3}+").build()},
+                {Parameter.builder().works(false).regex("X{0,2}+").build()},
 
+                //Logical operators
+                {Parameter.builder().works(true).regex("XY").build()},
+                {Parameter.builder().works(true).regex("X|Y").build()},
+                {Parameter.builder().works(true).regex("(X)").build()},
 
-X{n}	X, exactly n times
-X{n,}	X, at least n times
-X{n,m}	X, at least n but not more than m times
-
-Reluctant quantifiers
-X??	X, once or not at all
-X*?	X, zero or more times
-X+?	X, one or more times
-X{n}?	X, exactly n times
-X{n,}?	X, at least n times
-X{n,m}?	X, at least n but not more than m times
-
-Possessive quantifiers
-X?+	X, once or not at all
-X*+	X, zero or more times
-X++	X, one or more times
-X{n}+	X, exactly n times
-X{n,}+	X, at least n times
-X{n,m}+	X, at least n but not more than m times
-
-Logical operators
-XY	X followed by Y
-X|Y	Either X or Y
-(X)	X, as a capturing group
-
-Back references
-\n	Whatever the nth capturing group matched
-
-Quotation
-\	Nothing, but quotes the following character
-\Q	Nothing, but quotes all characters until \E
-\E	Nothing, but ends quoting started by \Q
-
-Special constructs (non-capturing)
-(?:X)	X, as a non-capturing group
-(?idmsux-idmsux) 	Nothing, but turns match flags i d m s u x on - off
-(?idmsux-idmsux:X)  	X, as a non-capturing group with the given flags i d m s u x on - off
-(?=X)	X, via zero-width positive lookahead
-(?!X)	X, via zero-width negative lookahead
-(?<=X)	X, via zero-width positive lookbehind
-(?<!X)	X, via zero-width negative lookbehind
-(?>X)	X, as an independent, non-capturing group
-                 */
-
-        };
+            };
         return Arrays.asList(data);
     }
 
     @Test
-    public void shouldNotGenerateTextCorrectly() throws Exception {
+    public void testBasedOnParameters() throws Exception {
 
-        if (expected != null) {
-            exceptionRule.expect(expected);
+        if (parameter.getExpected() != null) {
+            exceptionRule.expect(parameter.getExpected());
         }
         try {
-            Xeger generator = new Xeger(regex);
+            Xeger generator = new Xeger(parameter.getRegex());
             boolean alwaysCorrect = true;
-            String regexCleaned = regex.replace("\\", "");
-            for (int i = 0; i < MAX_ITERATIONS; i++) {
+            String regexCleaned = parameter.getRegex().replace("\\", "");
+            for (int i = 0; i < parameter.iterations(); i++) {
                 String text = generator.generate();
 
-                if (logger.isLoggable(Level.INFO)) {
-                    logger.log(Level.INFO,
-                            "For pattern \"{0}\" \t\t, generated: \"{1}\"",
-                            new Object[]{regex, text});
-                }
+                logger.log(Level.INFO,
+                        "{0}:For pattern \"{1}\" \t\t, generated: \"{2}\"",
+                        new Object[]{i, parameter.getRegex(), text});
 
-                if (working) {
+                if (parameter.getWorks()) {
                     assertTrue("text generated: " + text + " does match regexp: "
-                            + regex, text.matches(regex));
+                            + parameter.getRegex(), text.matches(parameter.getRegex()));
                 } else {
                     /**
                      * In case of non supported we have some which just sometimes works but at some point they doesn't.
@@ -229,22 +195,22 @@ Special constructs (non-capturing)
                      * So what we want to check is that not on all the cases the match is correct.
                      */
 
-                    if (text.matches(regex) && !text.equalsIgnoreCase(regexCleaned)) {
+                    if (text.matches(parameter.getRegex()) && !text.equalsIgnoreCase(regexCleaned)) {
                         logger.warning("the current regex worked when shouldn't. Text generated: |" + text
-                                + "| does match regexp: |" + regex + "|");
+                                + "| does match regexp: |" + parameter.getRegex()+ "|");
                     } else {
                         alwaysCorrect = false;
                     }
                 }
             }
 
-            if (!working) {
+            if (!parameter.getWorks()) {
                 assertFalse("Should has failed some time but always worked ... it is supported! regex: " +
-                        regex, alwaysCorrect);
+                        parameter.getRegex(), alwaysCorrect);
             }
         } catch (Exception maybeIgnored) {
-            logger.log(Level.SEVERE, "Error with regex: "+ regex + " which works?: " + working, maybeIgnored);
-            if (working) {
+            logger.log(Level.SEVERE, "Error with regex: "+ parameter.getRegex() + " which works?: " + parameter.getWorks(), maybeIgnored);
+            if (parameter.getWorks()) {
                 throw maybeIgnored;
             }
         }
