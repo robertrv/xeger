@@ -5,4 +5,5 @@ jdk:
     - oraclejdk7
     - oraclejdk8
 notifications:
-  email:robertrv+travis@gmail.com
+  email:
+    - robertrv+travis@gmail.com
