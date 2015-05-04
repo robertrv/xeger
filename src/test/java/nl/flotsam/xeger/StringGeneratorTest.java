@@ -22,13 +22,16 @@ package nl.flotsam.xeger;
  * Originally reported at: https://code.google.com/p/xeger/issues/detail?id=11
  */
 
-import org.junit.Test;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import static org.junit.Assert.assertEquals;
+import com.pholser.junit.quickcheck.ForAll;
+import org.junit.Test;
+import org.junit.contrib.theories.Theory;
 
 public class StringGeneratorTest {
     @Test
@@ -52,5 +55,14 @@ public class StringGeneratorTest {
             regexList.add(generator.generate());
         }
         return regexList;
+    }
+
+    @Test
+    public void testGenerateBounded() {
+        Xeger generator = new Xeger("ab*", new Random(1000));
+        for (int i = 0; i < 100; i++) {
+            String generated = generator.generate(3 ,7);
+            assertThat(generated.length()).isBetween(3, 7);
+        }
     }
 }

@@ -24,7 +24,6 @@ import java.util.Random;
  * Potentially a huge collection of utilities; now limited to only one method.
  */
 public class XegerUtils {
-
     /**
      * Generates a random number within the given bounds.
      *
