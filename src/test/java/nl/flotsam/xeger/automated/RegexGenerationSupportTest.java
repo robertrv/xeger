@@ -37,7 +37,7 @@ import static org.junit.Assert.assertTrue;
 @RunWith(value = Parameterized.class)
 public class RegexGenerationSupportTest {
 
-    private static final Logger logger = Logger.getLogger(RegexGenerationSupportTest.class.getSimpleName());
+    private static final Logger LOGGER = Logger.getLogger(RegexGenerationSupportTest.class.getSimpleName());
 
     private final Parameter parameter;
 
@@ -181,7 +181,7 @@ public class RegexGenerationSupportTest {
             for (int i = 0; i < parameter.iterations(); i++) {
                 String text = generator.generate();
 
-                logger.log(Level.INFO,
+                LOGGER.log(Level.INFO,
                         "{0}:For pattern \"{1}\" \t\t, generated: \"{2}\"",
                         new Object[]{i, parameter.getRegex(), text});
 
@@ -196,8 +196,8 @@ public class RegexGenerationSupportTest {
                      */
 
                     if (text.matches(parameter.getRegex()) && !text.equalsIgnoreCase(regexCleaned)) {
-                        logger.warning("the current regex worked when shouldn't. Text generated: |" + text
-                                + "| does match regexp: |" + parameter.getRegex()+ "|");
+                        LOGGER.warning("the current regex worked when shouldn't. Text generated: |" + text
+                                + "| does match regexp: |" + parameter.getRegex() + "|");
                     } else {
                         alwaysCorrect = false;
                     }
@@ -209,7 +209,7 @@ public class RegexGenerationSupportTest {
                         parameter.getRegex(), alwaysCorrect);
             }
         } catch (Exception maybeIgnored) {
-            logger.log(Level.SEVERE, "Error with regex: "+ parameter.getRegex() + " which works?: " + parameter.getWorks(), maybeIgnored);
+            LOGGER.log(Level.SEVERE, "Error with regex: " + parameter.getRegex() + " which works?: " + parameter.getWorks(), maybeIgnored);
             if (parameter.getWorks()) {
                 throw maybeIgnored;
             }

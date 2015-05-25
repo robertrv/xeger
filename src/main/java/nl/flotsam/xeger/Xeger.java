@@ -105,7 +105,7 @@ public class Xeger {
         totalWeight=0;
         for (int i=0; i<weightings.length; i++) {
             weightings[i] = transitions.get(i).getMax()-transitions.get(i).getMin() + 1;
-            totalWeight+=weightings[i];
+            totalWeight += weightings[i];
         }
 
         int option = XegerUtils.getRandomInt(1, totalWeight, random);
@@ -122,9 +122,11 @@ public class Xeger {
         } while (discardedWeight < option);
 
         if (depth > getMaxLoops()) {
-            index = rotateIndex(index, transitions.size()); // XXX: What happens if there is just one state to go to? Should stop anyway.
+            if (state.isAccept()) {
+                return;
+            }
+            index = rotateIndex(index, transitions.size());
         }
-
 
         // Moving on to next transition
         Transition transition = transitions.get(index);
@@ -178,6 +180,7 @@ public class Xeger {
                         value + "), now using default: " + MAX_LOOPS);
             }
         }
+        System.out.println("Using MAX_LOOPS: " + maxLoops);
         return maxLoops;
     }
 
