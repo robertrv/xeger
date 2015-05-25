@@ -18,20 +18,47 @@
  */
 package nl.flotsam.xeger;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
+import com.pholser.junit.quickcheck.ForAll;
+import com.pholser.junit.quickcheck.generator.InRange;
 import org.assertj.core.api.Assertions;
 import org.junit.Test;
+import org.junit.contrib.theories.Theories;
+import org.junit.contrib.theories.Theory;
+import org.junit.runner.RunWith;
 
 import java.util.Random;
 
+@RunWith(Theories.class)
 public class XegerUtilsTest {
 
     @Test
-    public void shouldGenerateRandomNumberCorrectly() {
-        for (int i = 0; i < 100; i++) {
-            Random random = new Random();
-            int number = XegerUtils.getRandomInt(3, 7, random);
-            Assertions.assertThat(number).isBetween(3, 7);
-        }
+    public void testConstructor() {
+        assertThat(new XegerUtils()).isNotNull();
     }
 
+    @Theory
+    public void shouldGenerateRandomNumberCorrectly(@ForAll int down) {
+        int up = down + 10;
+        Random random = new Random();
+        int number = XegerUtils.getRandomInt(down, up, random);
+        assertThat(number).isBetween(down, up);
+    }
+
+    @Test
+    public void testWithMaxLoops() {
+        System.setProperty("nl.flotsam.xeger.MAX_LOOPS", "2");
+        String generated = new Xeger("a*").generate();
+        assertThat(generated).matches("a*");
+        assertThat(generated.length()).isLessThan(2);
+    }
+
+    @Test
+    public void testWithMaxLoops_InvalidSystemVariable() {
+        System.setProperty("nl.flotsam.xeger.MAX_LOOPS", "invalid");
+        String generated = new Xeger("a*").generate();
+        assertThat(generated).matches("a*");
+        assertThat(generated.length()).isLessThan(8);
+    }
 }
