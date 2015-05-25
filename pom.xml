@@ -59,18 +59,6 @@
             <version>1.14.8</version>
             <scope>test</scope>
         </dependency>
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-core</artifactId>
-            <version>0.5-alpha-2</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>com.pholser</groupId>
-            <artifactId>junit-quickcheck-generators</artifactId>
-            <version>0.5-alpha-2</version>
-            <scope>test</scope>
-        </dependency>
     </dependencies>
     <build>
         <plugins>

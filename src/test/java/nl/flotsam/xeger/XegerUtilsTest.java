@@ -18,17 +18,12 @@
  */
 package nl.flotsam.xeger;
 
-import com.pholser.junit.quickcheck.ForAll;
 import org.junit.Test;
-import org.junit.contrib.theories.Theories;
-import org.junit.contrib.theories.Theory;
-import org.junit.runner.RunWith;
 
 import java.util.Random;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@RunWith(Theories.class)
 public class XegerUtilsTest {
 
     @Test
@@ -36,12 +31,15 @@ public class XegerUtilsTest {
         assertThat(new XegerUtils()).isNotNull();
     }
 
-    @Theory
-    public void shouldGenerateRandomNumberCorrectly(@ForAll int down) {
-        int up = down + 10;
+    @Test
+    public void shouldGenerateRandomNumberCorrectly() {
         Random random = new Random();
-        int number = XegerUtils.getRandomInt(down, up, random);
-        assertThat(number).isBetween(down, up);
+        for (int i = 0; i < 100; i++) {
+            int down = random.nextInt(100);
+            int up = down + 10;
+            int number = XegerUtils.getRandomInt(down, up, random);
+            assertThat(number).isBetween(down, up);
+        }
     }
 
     @Test
@@ -49,7 +47,6 @@ public class XegerUtilsTest {
         System.setProperty("nl.flotsam.xeger.MAX_LOOPS", "2");
         for (int i = 0; i < 100; i++) {
             String generated = new Xeger("a*").generate();
-            System.out.println("i: " + i + " . Generated: " + generated);
             assertThat(generated).matches("a*");
             assertThat(generated.length()).isLessThan(4); // Because our implementation we will loop
         }

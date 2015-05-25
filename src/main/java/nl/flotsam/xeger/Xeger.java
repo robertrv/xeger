@@ -180,7 +180,6 @@ public class Xeger {
                         value + "), now using default: " + MAX_LOOPS);
             }
         }
-        System.out.println("Using MAX_LOOPS: " + maxLoops);
         return maxLoops;
     }
 

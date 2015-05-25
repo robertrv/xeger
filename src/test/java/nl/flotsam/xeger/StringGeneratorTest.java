@@ -22,16 +22,14 @@ package nl.flotsam.xeger;
  * Originally reported at: https://code.google.com/p/xeger/issues/detail?id=11
  */
 
-import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import com.pholser.junit.quickcheck.ForAll;
-import org.junit.Test;
-import org.junit.contrib.theories.Theory;
+import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.Assert.assertEquals;
 
 public class StringGeneratorTest {
     @Test

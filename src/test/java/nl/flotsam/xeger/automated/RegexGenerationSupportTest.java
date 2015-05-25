@@ -156,7 +156,7 @@ public class RegexGenerationSupportTest {
                 {Parameter.builder().works(true).regex("X{0}+").build()},
                 {Parameter.builder().works(true).regex("X{2,}+").build()},
                 {Parameter.builder().works(true).regex("X{0,}+").build()},
-                {Parameter.builder().works(false).regex("X{1,3}+").build()},
+                {Parameter.builder().works(true).regex("X{1,3}+").build()},
                 {Parameter.builder().works(false).regex("X{0,2}+").build()},
 
                 //Logical operators
