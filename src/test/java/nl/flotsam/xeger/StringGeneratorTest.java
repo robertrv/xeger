@@ -34,7 +34,7 @@ import static org.junit.Assert.assertEquals;
 public class StringGeneratorTest {
     @Test
     public void testRepeatableRegex() {
-        for (int x = 0; x<1000; x++) {
+        for (int x = 0; x<100; x++) {
             Xeger generator = new Xeger("[ab]{4,6}c", new Random(1000));
             Xeger generator2 = new Xeger("[ab]{4,6}c", new Random(1000));
 
