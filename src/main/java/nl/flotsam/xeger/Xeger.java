@@ -62,7 +62,7 @@ public class Xeger {
     public Xeger(String regex, Random random) {
         assert regex != null;
         assert random != null;
-        this.automaton = new RegExp(regex).toAutomaton();
+        this.automaton = new RegExp(XegerUtils.expandShorthandClasses(regex)).toAutomaton();
         this.random = random;
     }
 

@@ -52,9 +52,9 @@ public class RegexGenerationSupportTest {
     public static Collection<Object[]> data() {
         Object[][] data = new Object[][]{
                 {Parameter.builder().works(true).regex("").build()},
-                // Predefined character classes does not work
-                {Parameter.builder().works(false).regex("\\d\\d").build()},
-                {Parameter.builder().works(false).regex("\\d{3}").build()},
+                // Predefined character classes
+                {Parameter.builder().works(true).regex("\\d\\d").build()},
+                {Parameter.builder().works(true).regex("\\d{3}").build()},
                 {Parameter.builder().works(false).regex("\b(\\w+)\\s+\\1\b ").build()},
                 // Supported elements from java api
                 {Parameter.builder().works(true).regex("[ab]{4,6}c").build()},
@@ -75,12 +75,12 @@ public class RegexGenerationSupportTest {
                 {Parameter.builder().works(false).regex("|b").build()},
                 // predefined character classes
                 {Parameter.builder().works(true).regex(".").build()},
-                {Parameter.builder().works(false).regex("\\d").build()},
-                {Parameter.builder().works(false).regex("\\D").build()},
-                {Parameter.builder().works(false).regex("\\s").build()},
-                {Parameter.builder().works(false).regex("\\S").build()},
-                {Parameter.builder().works(false).regex("\\w").build()},
-                {Parameter.builder().works(false).regex("\\W").build()},
+                {Parameter.builder().works(true).regex("\\d").build()},
+                {Parameter.builder().works(true).regex("\\D").build()},
+                {Parameter.builder().works(true).regex("\\s").build()},
+                {Parameter.builder().works(true).regex("\\S").build()},
+                {Parameter.builder().works(true).regex("\\w").build()},
+                {Parameter.builder().works(true).regex("\\W").build()},
                 // POSIX character classes
                 {Parameter.builder().works(false).regex("\\p{Lower}").build()},
                 {Parameter.builder().works(false).regex("\\p{Upper}").build()},

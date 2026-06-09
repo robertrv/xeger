@@ -21,21 +21,72 @@ package nl.flotsam.xeger;
 import java.util.Random;
 
 /**
- * Potentially a huge collection of utilities; now limited to only one method.
+ * Utility methods for the Xeger library.
  */
 public class XegerUtils {
+
     /**
      * Generates a random number within the given bounds.
      *
-     * @param min The minimum number (inclusive).
-     * @param max The maximum number (inclusive).
+     * @param min    The minimum number (inclusive).
+     * @param max    The maximum number (inclusive).
      * @param random The object used as the randomizer.
      * @return A random number in the given range.
      */
     public final static int getRandomInt(int min, int max, Random random) {
-        //Now uses random.nextInt as it guarantees a uniform distribution       
-        int maxForRandom=max-min+1;
+        // Uses random.nextInt to guarantee a uniform distribution
+        int maxForRandom = max - min + 1;
         return random.nextInt(maxForRandom) + min;
+    }
+
+    /**
+     * Expands Java predefined character class shorthand sequences into their
+     * brics-automaton-compatible equivalents before the regex is compiled.
+     *
+     * <p>Supported expansions:
+     * <ul>
+     *   <li>{@code \d} → {@code [0-9]}</li>
+     *   <li>{@code \D} → {@code [^0-9]}</li>
+     *   <li>{@code \w} → {@code [a-zA-Z0-9_]}</li>
+     *   <li>{@code \W} → {@code [^a-zA-Z0-9_]}</li>
+     *   <li>{@code \s} → {@code [ \t\n\r\f]}</li>
+     *   <li>{@code \S} → {@code [^ \t\n\r\f]}</li>
+     * </ul>
+     *
+     * <p>Escaped backslashes ({@code \\d}, {@code \\w}, {@code \\s}, etc.) are
+     * left untouched so that literal backslash + letter sequences are not
+     * incorrectly expanded.
+     *
+     * @param regex The regular expression to process.
+     * @return The regex with predefined character classes expanded.
+     */
+    public static String expandShorthandClasses(String regex) {
+        StringBuilder result = new StringBuilder(regex.length());
+        int i = 0;
+        while (i < regex.length()) {
+            char c = regex.charAt(i);
+            if (c == '\\' && i + 1 < regex.length()) {
+                char next = regex.charAt(i + 1);
+                switch (next) {
+                    case 'd': result.append("[0-9]");           i += 2; break;
+                    case 'D': result.append("[^0-9]");          i += 2; break;
+                    case 'w': result.append("[a-zA-Z0-9_]");    i += 2; break;
+                    case 'W': result.append("[^a-zA-Z0-9_]");   i += 2; break;
+                    case 's': result.append("[ \t\n\r]");  i += 2; break;
+                    case 'S': result.append("[^ \t\n\r]"); i += 2; break;
+                    default:
+                        // Not a shorthand — preserve the backslash and the next char as-is
+                        result.append(c);
+                        result.append(next);
+                        i += 2;
+                        break;
+                }
+            } else {
+                result.append(c);
+                i++;
+            }
+        }
+        return result.toString();
     }
 
 }

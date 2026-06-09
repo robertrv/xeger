@@ -76,4 +76,53 @@ public class XegerUtilsTest {
         String generated = new Xeger("a*").generate();
         assertThat(generated).matches("a*");
     }
+
+    @Test
+    public void testExpandShorthandClasses_digits() {
+        assertThat(XegerUtils.expandShorthandClasses("\\d")).isEqualTo("[0-9]");
+        assertThat(XegerUtils.expandShorthandClasses("\\D")).isEqualTo("[^0-9]");
+        assertThat(XegerUtils.expandShorthandClasses("\\d{3}")).isEqualTo("[0-9]{3}");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_wordChars() {
+        assertThat(XegerUtils.expandShorthandClasses("\\w")).isEqualTo("[a-zA-Z0-9_]");
+        assertThat(XegerUtils.expandShorthandClasses("\\W")).isEqualTo("[^a-zA-Z0-9_]");
+        assertThat(XegerUtils.expandShorthandClasses("\\w+")).isEqualTo("[a-zA-Z0-9_]+");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_whitespace() {
+        assertThat(XegerUtils.expandShorthandClasses("\\s")).isEqualTo("[ \t\n\r]");
+        assertThat(XegerUtils.expandShorthandClasses("\\S")).isEqualTo("[^ \t\n\r]");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_combined() {
+        assertThat(XegerUtils.expandShorthandClasses("\\d\\d\\s\\w")).isEqualTo("[0-9][0-9][ \t\n\r][a-zA-Z0-9_]");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_noExpansionNeeded() {
+        assertThat(XegerUtils.expandShorthandClasses("[a-z]{3}")).isEqualTo("[a-z]{3}");
+        assertThat(XegerUtils.expandShorthandClasses("abc")).isEqualTo("abc");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_generatedStringsMatchPattern() {
+        String[][] cases = {
+            {"\\d{3}", "\\d{3}"},
+            {"\\w+",   "\\w+"},
+            {"\\d\\s\\w", "\\d\\s\\w"},
+        };
+        for (String[] pair : cases) {
+            String regex = pair[0];
+            String javaPattern = pair[1];
+            Xeger xeger = new Xeger(regex);
+            for (int i = 0; i < 50; i++) {
+                String generated = xeger.generate();
+                assertThat(generated).as("Pattern: " + regex).matches(javaPattern);
+            }
+        }
+    }
 }
