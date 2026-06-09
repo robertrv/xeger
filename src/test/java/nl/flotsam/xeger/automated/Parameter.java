@@ -18,11 +18,6 @@
  */
 package nl.flotsam.xeger.automated;
 
-import lombok.Data;
-import lombok.experimental.Builder;
-
-@Builder
-@Data
 public class Parameter {
     public static final int MAX_ITERATIONS = 100;
 
@@ -31,11 +26,43 @@ public class Parameter {
     private Class<? extends Throwable> expected;
     private Integer iterationsOverride;
 
+    private Parameter(Builder builder) {
+        this.works = builder.works;
+        this.regex = builder.regex;
+        this.expected = builder.expected;
+        this.iterationsOverride = builder.iterationsOverride;
+    }
+
+    public Boolean getWorks() { return works; }
+    public String getRegex() { return regex; }
+    public Class<? extends Throwable> getExpected() { return expected; }
+
     public int iterations() {
-        if (iterationsOverride != null) {
-            return iterationsOverride;
-        } else {
-            return MAX_ITERATIONS;
+        return iterationsOverride != null ? iterationsOverride : MAX_ITERATIONS;
+    }
+
+    @Override
+    public String toString() {
+        return "Parameter(regex=" + regex + ", works=" + works + ")";
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+        private Boolean works;
+        private String regex;
+        private Class<? extends Throwable> expected;
+        private Integer iterationsOverride;
+
+        public Builder works(Boolean works) { this.works = works; return this; }
+        public Builder regex(String regex) { this.regex = regex; return this; }
+        public Builder expected(Class<? extends Throwable> expected) { this.expected = expected; return this; }
+        public Builder iterationsOverride(Integer iterationsOverride) { this.iterationsOverride = iterationsOverride; return this; }
+
+        public Parameter build() {
+            return new Parameter(this);
         }
     }
 }
