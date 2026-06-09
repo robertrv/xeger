@@ -39,10 +39,18 @@ public class Xeger {
     private long desiredMaxLength=-1;
 
     /**
-     * As we are dealing with DFA and we decide what transition to take based on weight that would cause an infinite
-     * loop, we cap the number of iterations when traversing cyclic states.
+     * When traversing cyclic states, after this many iterations the generator will force an escape
+     * by preferring a transition that leads to a different state.
      */
     private static final int MAX_LOOPS = 8;
+
+    /**
+     * Hard cap on the total number of characters that can be generated in a single {@link #generate()} call.
+     * Prevents infinite loops caused by degenerate DFA structures (e.g. patterns with unsupported constructs
+     * like boundary matchers that produce all-self-loop states). Configurable via the system property
+     * {@code nl.flotsam.xeger.MAX_GENERATED_LENGTH}. Default is 100.
+     */
+    private static final int MAX_GENERATED_LENGTH = 100;
 
     /**
      * Constructs a new instance, accepting the regular expression and the randomizer.
@@ -90,9 +98,13 @@ public class Xeger {
     private void generate(StringBuilder builder, State state) {
         int iterations = 0;
         int maxLoops = getMaxLoops();
+        int maxGeneratedLength = getMaxGeneratedLength();
         State current = state;
 
         while (true) {
+            if (builder.length() >= maxGeneratedLength) {
+                return;
+            }
             List<Transition> transitions = current.getSortedTransitions(false);
             if (transitions.size() == 0) {
                 assert current.isAccept();
@@ -124,7 +136,9 @@ public class Xeger {
                 if (current.isAccept()) {
                     return;
                 }
-                index = rotateIndex(index, transitions.size());
+                // We have been looping too long on a non-accept state: force forward progress
+                // by preferring a transition that leads to a different (non-current) state.
+                index = escapeIndex(transitions, current);
             }
 
             Transition transition = transitions.get(index);
@@ -134,12 +148,19 @@ public class Xeger {
         }
     }
 
-    private int rotateIndex(int index, int size) {
-        if (size <= 1) {
-            return 0;
-        } else {
-            return (index + 1) % size;
+    /**
+     * Selects the index of the first transition that leads to a state different from {@code current}.
+     * This guarantees forward progress when the traversal is stuck in a cycle on a non-accept state.
+     * Falls back to index 0 if every transition is a self-loop (which cannot happen in a valid DFA,
+     * since every reachable state must have a path to an accept state).
+     */
+    private int escapeIndex(List<Transition> transitions, State current) {
+        for (int i = 0; i < transitions.size(); i++) {
+            if (transitions.get(i).getDest() != current) {
+                return i;
+            }
         }
+        return 0; // fallback: should never be reached for a valid DFA
     }
 
 
@@ -166,17 +187,24 @@ public class Xeger {
     }
 
     private int getMaxLoops() {
-        int maxLoops = MAX_LOOPS;
-        String value = System.getProperty("nl.flotsam.xeger.MAX_LOOPS");
+        return getIntProperty("nl.flotsam.xeger.MAX_LOOPS", MAX_LOOPS);
+    }
+
+    private int getMaxGeneratedLength() {
+        return getIntProperty("nl.flotsam.xeger.MAX_GENERATED_LENGTH", MAX_GENERATED_LENGTH);
+    }
+
+    private int getIntProperty(String key, int defaultValue) {
+        String value = System.getProperty(key);
         if (value != null) {
             try {
-                maxLoops = Integer.valueOf(value);
+                return Integer.valueOf(value);
             } catch (NumberFormatException ignored) {
-                System.err.println("CAUTION: the value your are using for MAX_LOOPS is not an valid integer (" +
-                        value + "), now using default: " + MAX_LOOPS);
+                System.err.println("CAUTION: the value you are using for " + key + " is not a valid integer (" +
+                        value + "), now using default: " + defaultValue);
             }
         }
-        return maxLoops;
+        return defaultValue;
     }
 
 }

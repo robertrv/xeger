@@ -59,4 +59,21 @@ public class XegerUtilsTest {
         assertThat(generated).matches("a*");
         assertThat(generated.length()).isLessThan(8);
     }
+
+    @Test
+    public void testMaxGeneratedLength() {
+        System.setProperty("nl.flotsam.xeger.MAX_GENERATED_LENGTH", "10");
+        for (int i = 0; i < 100; i++) {
+            String generated = new Xeger("a*").generate();
+            assertThat(generated.length()).isLessThanOrEqualTo(10);
+        }
+    }
+
+    @Test
+    public void testMaxGeneratedLength_InvalidSystemVariable() {
+        System.setProperty("nl.flotsam.xeger.MAX_GENERATED_LENGTH", "invalid");
+        // Should fall back to default (100) without throwing
+        String generated = new Xeger("a*").generate();
+        assertThat(generated).matches("a*");
+    }
 }
