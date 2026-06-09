@@ -18,6 +18,7 @@
  */
 package nl.flotsam.xeger.cli;
 
+import nl.flotsam.xeger.CharacterSet;
 import nl.flotsam.xeger.Xeger;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
@@ -51,10 +52,14 @@ public class XegerCommand implements Callable<Integer> {
     @Option(names = {"--seed"}, description = "Random seed for reproducible output.")
     private Long seed;
 
+    @Option(names = {"--charset"}, description = "Restrict generated characters: UNICODE (default), ASCII, PRINTABLE_ASCII.")
+    private String charset = "UNICODE";
+
     public Integer call() {
+        CharacterSet characterSet = resolveCharacterSet(charset);
         for (String pattern : patterns) {
             Random random = seed != null ? new Random(seed) : new Random();
-            Xeger xeger = new Xeger(pattern, random);
+            Xeger xeger = new Xeger(pattern, random, characterSet);
             for (int i = 0; i < count; i++) {
                 String result = (minLength >= 0 || maxLength >= 0)
                         ? xeger.generate(minLength, maxLength)
@@ -63,6 +68,15 @@ public class XegerCommand implements Callable<Integer> {
             }
         }
         return 0;
+    }
+
+    private CharacterSet resolveCharacterSet(String name) {
+        switch (name.toUpperCase()) {
+            case "ASCII":           return CharacterSet.ASCII;
+            case "PRINTABLE_ASCII": return CharacterSet.PRINTABLE_ASCII;
+            case "UNICODE":
+            default:                return CharacterSet.UNICODE;
+        }
     }
 
     public static void main(String[] args) {

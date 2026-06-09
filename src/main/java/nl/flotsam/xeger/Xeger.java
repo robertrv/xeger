@@ -34,6 +34,7 @@ public class Xeger {
 
     private final Automaton automaton;
     private final Random random;
+    private final CharacterSet characterSet;
 
     private long desiredMinLength=-1;
     private long desiredMaxLength=-1;
@@ -53,25 +54,40 @@ public class Xeger {
     private static final int MAX_GENERATED_LENGTH = 100;
 
     /**
-     * Constructs a new instance, accepting the regular expression and the randomizer.
+     * Constructs a new instance with a specific character set constraint.
      *
-     * @param regex  The regular expression. (Not <code>null</code>.)
-     * @param random The object that will randomize the way the String is generated. (Not <code>null</code>.)
+     * @param regex        The regular expression. (Not <code>null</code>.)
+     * @param random       The randomizer. (Not <code>null</code>.)
+     * @param characterSet Restricts generated characters to this set. Use
+     *                     {@link CharacterSet#UNICODE} to preserve the original
+     *                     unconstrained behaviour. (Not <code>null</code>.)
      * @throws IllegalArgumentException If the regular expression is invalid.
      */
-    public Xeger(String regex, Random random) {
+    public Xeger(String regex, Random random, CharacterSet characterSet) {
         assert regex != null;
         assert random != null;
+        assert characterSet != null;
         this.automaton = new RegExp(XegerUtils.expandShorthandClasses(regex)).toAutomaton();
         this.random = random;
+        this.characterSet = characterSet;
     }
 
     /**
-     * As {@link nl.flotsam.xeger.Xeger#Xeger(String, java.util.Random)}, creating a {@link java.util.Random} instance
-     * implicityly.
+     * Constructs a new instance using {@link CharacterSet#UNICODE} (default behaviour).
+     *
+     * @param regex  The regular expression. (Not <code>null</code>.)
+     * @param random The randomizer. (Not <code>null</code>.)
+     * @throws IllegalArgumentException If the regular expression is invalid.
+     */
+    public Xeger(String regex, Random random) {
+        this(regex, random, CharacterSet.UNICODE);
+    }
+
+    /**
+     * Constructs a new instance using {@link CharacterSet#UNICODE} and a freshly created {@link java.util.Random}.
      */
     public Xeger(String regex) {
-        this(regex, new Random());
+        this(regex, new Random(), CharacterSet.UNICODE);
     }
 
     /**
@@ -111,12 +127,26 @@ public class Xeger {
                 return;
             }
 
-            // Populate weightings based on the number of possible characters per transition.
+            // Populate weightings based on characters available in each transition
+            // after intersecting with the configured character set.
             int[] weightings = new int[transitions.size()];
             int totalWeight = 0;
             for (int i = 0; i < weightings.length; i++) {
-                weightings[i] = transitions.get(i).getMax() - transitions.get(i).getMin() + 1;
+                Transition t = transitions.get(i);
+                if (characterSet.overlaps(t.getMin(), t.getMax())) {
+                    char lo = characterSet.clampMin(t.getMin());
+                    char hi = characterSet.clampMax(t.getMax());
+                    weightings[i] = hi - lo + 1;
+                } else {
+                    weightings[i] = 0; // transition incompatible with character set
+                }
                 totalWeight += weightings[i];
+            }
+
+            if (totalWeight == 0) {
+                // No transition is compatible with the character set; stop if possible,
+                // otherwise accept a potentially non-matching result rather than looping.
+                return;
             }
 
             int option = XegerUtils.getRandomInt(1, totalWeight, random);
@@ -125,11 +155,13 @@ public class Xeger {
                 return;
             }
 
-            // Find the transition that corresponds to the chosen random value.
+            // Find the transition that corresponds to the chosen random value,
+            // skipping transitions with zero weight (outside character set).
             int discardedWeight = 0;
             int index = -1;
             do {
-                discardedWeight += weightings[++index];
+                index++;
+                discardedWeight += weightings[index];
             } while (discardedWeight < option);
 
             if (iterations > maxLoops) {
@@ -165,7 +197,9 @@ public class Xeger {
 
 
     private void appendChoice(StringBuilder builder, Transition transition) {
-        char c = (char) XegerUtils.getRandomInt(transition.getMin(), transition.getMax(), random);
+        char lo = characterSet.clampMin(transition.getMin());
+        char hi = characterSet.clampMax(transition.getMax());
+        char c = (char) XegerUtils.getRandomInt(lo, hi, random);
         builder.append(c);
     }
 
