@@ -122,12 +122,12 @@ public class RegexGenerationSupportTest {
                 {Parameter.builder().works(true).regex("ABC?").build()},
 
                 // Greedy quantifiers
-                {Parameter.builder().works(false).regex("A*BC").iterationsOverride(10000).expected(StackOverflowError.class).build()},
-                {Parameter.builder().works(false).regex("AB*C").iterationsOverride(10000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(true).regex("A*BC").build()},
+                {Parameter.builder().works(true).regex("AB*C").build()},
                 {Parameter.builder().works(true).regex("ABC*").build()},
 
-                {Parameter.builder().works(false).regex("A+BC").iterationsOverride(1000).expected(StackOverflowError.class).build()},
-                {Parameter.builder().works(false).regex("AB+C").iterationsOverride(1000).expected(StackOverflowError.class).build()},
+                {Parameter.builder().works(true).regex("A+BC").build()},
+                {Parameter.builder().works(true).regex("AB+C").build()},
                 {Parameter.builder().works(true).regex("ABC+").build()},
                 {Parameter.builder().works(true).regex("A{3}BC").build()},
                 {Parameter.builder().works(true).regex("AB{3}C").build()},

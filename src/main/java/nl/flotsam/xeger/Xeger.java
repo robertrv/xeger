@@ -34,15 +34,13 @@ public class Xeger {
 
     private final Automaton automaton;
     private final Random random;
-    
+
     private long desiredMinLength=-1;
     private long desiredMaxLength=-1;
-    private int depth = 0;
 
     /**
-     * As we are dealing with DFA and we decide what transition to take based on weight that would cause invinite loop
-     * we are adding a maximum number of loops.
-     * TODO: Change this dirty solution to solve properly the infinite loop.
+     * As we are dealing with DFA and we decide what transition to take based on weight that would cause an infinite
+     * loop, we cap the number of iterations when traversing cyclic states.
      */
     private static final int MAX_LOOPS = 8;
 
@@ -90,59 +88,57 @@ public class Xeger {
     }
 
     private void generate(StringBuilder builder, State state) {
-        List<Transition> transitions = state.getSortedTransitions(false);
-        if (transitions.size() == 0) {
-            assert state.isAccept();
-            return;
-        }
-        
-        //Try to ascertain the value of the transitions
-        int weightings[] = new int[transitions.size()];
-        int totalWeight;
+        int iterations = 0;
+        int maxLoops = getMaxLoops();
+        State current = state;
 
-        //Populates and array called weightings which looks at the number of possible
-        //characters in that transition. The random select is then weighted.
-        totalWeight=0;
-        for (int i=0; i<weightings.length; i++) {
-            weightings[i] = transitions.get(i).getMax()-transitions.get(i).getMin() + 1;
-            totalWeight += weightings[i];
-        }
-
-        int option = XegerUtils.getRandomInt(1, totalWeight, random);
-        
-        if (state.isAccept() && decideWhetherToStop(builder)) {
-            return;
-        }
-        
-        //Loop to test the random number against the weightings array.
-        int discardedWeight = 0;
-        int index=-1;
-        do {
-            discardedWeight+=weightings[++index];
-        } while (discardedWeight < option);
-
-        if (depth > getMaxLoops()) {
-            if (state.isAccept()) {
+        while (true) {
+            List<Transition> transitions = current.getSortedTransitions(false);
+            if (transitions.size() == 0) {
+                assert current.isAccept();
                 return;
             }
-            index = rotateIndex(index, transitions.size());
+
+            // Populate weightings based on the number of possible characters per transition.
+            int[] weightings = new int[transitions.size()];
+            int totalWeight = 0;
+            for (int i = 0; i < weightings.length; i++) {
+                weightings[i] = transitions.get(i).getMax() - transitions.get(i).getMin() + 1;
+                totalWeight += weightings[i];
+            }
+
+            int option = XegerUtils.getRandomInt(1, totalWeight, random);
+
+            if (current.isAccept() && decideWhetherToStop(builder)) {
+                return;
+            }
+
+            // Find the transition that corresponds to the chosen random value.
+            int discardedWeight = 0;
+            int index = -1;
+            do {
+                discardedWeight += weightings[++index];
+            } while (discardedWeight < option);
+
+            if (iterations > maxLoops) {
+                if (current.isAccept()) {
+                    return;
+                }
+                index = rotateIndex(index, transitions.size());
+            }
+
+            Transition transition = transitions.get(index);
+            appendChoice(builder, transition);
+            iterations++;
+            current = transition.getDest();
         }
-
-        // Moving on to next transition
-        Transition transition = transitions.get(index);
-        appendChoice(builder, transition);
-        depth++;
-        // TODO robertrv : Transform to iterative to avoid StackOverflow
-
-        generate(builder, transition.getDest());
-        depth--;
     }
 
     private int rotateIndex(int index, int size) {
-        if ((size - 1) == 0) {
-            return 0; // There is solution, we have to return something. TODO: Fix it!
+        if (size <= 1) {
+            return 0;
         } else {
-            return (index + 1) % (size -1);
+            return (index + 1) % size;
         }
     }
 
