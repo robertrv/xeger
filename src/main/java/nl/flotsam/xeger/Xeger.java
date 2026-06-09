@@ -23,8 +23,9 @@ import dk.brics.automaton.State;
 import dk.brics.automaton.Transition;
 import dk.brics.automaton.RegExp;
 
-import java.util.Random;
 import java.util.List;
+import java.util.Random;
+import java.util.stream.Stream;
 
 /**
  * An object that will generate text from a regular expression. In a way, it's the opposite of a regular expression
@@ -109,6 +110,34 @@ public class Xeger {
         this.desiredMinLength=desiredMinLength;
         this.desiredMaxLength=desiredMaxLength;
         return generate();
+    }
+
+    /**
+     * Returns an infinite sequential {@link Stream} of random strings, each guaranteed to match
+     * the regular expression passed to the constructor.
+     *
+     * <p>The stream is lazy — strings are generated on demand. Use {@link Stream#limit(long)} to
+     * obtain a finite number of results:
+     * <pre>
+     *     List&lt;String&gt; samples = new Xeger("[a-z]{5}").stream().limit(100).collect(toList());
+     * </pre>
+     *
+     * @return An infinite stream of matching strings.
+     */
+    public Stream<String> stream() {
+        return Stream.generate(this::generate);
+    }
+
+    /**
+     * Returns an infinite sequential {@link Stream} of random strings with best-effort length
+     * bounds applied to each generated value.
+     *
+     * @param desiredMinLength Minimum desired length (-1 to ignore).
+     * @param desiredMaxLength Maximum desired length (-1 to ignore).
+     * @return An infinite stream of matching strings.
+     */
+    public Stream<String> stream(int desiredMinLength, int desiredMaxLength) {
+        return Stream.generate(() -> generate(desiredMinLength, desiredMaxLength));
     }
 
     private void generate(StringBuilder builder, State state) {
