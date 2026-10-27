@@ -37,6 +37,16 @@ public class Xeger {
     private final Random random;
     private final CharacterSet characterSet;
 
+    /**
+     * Resolved once at construction time from the {@code nl.flotsam.xeger.MAX_LOOPS} and
+     * {@code nl.flotsam.xeger.MAX_GENERATED_LENGTH} system properties (falling back to the
+     * constants below). Reading and parsing these on every {@link #generate()} call was both
+     * wasteful and caused the "invalid integer" warning to be emitted once per generated
+     * character rather than once per instance.
+     */
+    private final int maxLoops;
+    private final int maxGeneratedLength;
+
     private long desiredMinLength=-1;
     private long desiredMaxLength=-1;
 
@@ -71,6 +81,8 @@ public class Xeger {
         this.automaton = new RegExp(XegerUtils.expandShorthandClasses(regex)).toAutomaton();
         this.random = random;
         this.characterSet = characterSet;
+        this.maxLoops = getIntProperty("nl.flotsam.xeger.MAX_LOOPS", MAX_LOOPS);
+        this.maxGeneratedLength = getIntProperty("nl.flotsam.xeger.MAX_GENERATED_LENGTH", MAX_GENERATED_LENGTH);
     }
 
     /**
@@ -142,8 +154,6 @@ public class Xeger {
 
     private void generate(StringBuilder builder, State state) {
         int iterations = 0;
-        int maxLoops = getMaxLoops();
-        int maxGeneratedLength = getMaxGeneratedLength();
         State current = state;
 
         while (true) {
@@ -247,14 +257,6 @@ public class Xeger {
             //For example [A-Z]* will be zero or one characters most of the time.
             return random.nextBoolean();
         }
-    }
-
-    private int getMaxLoops() {
-        return getIntProperty("nl.flotsam.xeger.MAX_LOOPS", MAX_LOOPS);
-    }
-
-    private int getMaxGeneratedLength() {
-        return getIntProperty("nl.flotsam.xeger.MAX_GENERATED_LENGTH", MAX_GENERATED_LENGTH);
     }
 
     private int getIntProperty(String key, int defaultValue) {
