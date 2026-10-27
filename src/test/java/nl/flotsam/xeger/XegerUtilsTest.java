@@ -109,6 +109,40 @@ public class XegerUtilsTest {
     }
 
     @Test
+    public void testExpandShorthandClasses_insideCharClassUsesBareContents() {
+        // Inside [...] the shorthand must expand to bare contents, not a nested bracket group.
+        assertThat(XegerUtils.expandShorthandClasses("[\\d.]")).isEqualTo("[0-9.]");
+        assertThat(XegerUtils.expandShorthandClasses("[\\w-]")).isEqualTo("[a-zA-Z0-9_-]");
+        assertThat(XegerUtils.expandShorthandClasses("[\\s]")).isEqualTo("[ \t\n\r]");
+        assertThat(XegerUtils.expandShorthandClasses("[a\\d]")).isEqualTo("[a0-9]");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_negatedShorthandLeftIntactInsideCharClass() {
+        // Negated shorthands have no bare-contents form inside a class; leave them untouched.
+        assertThat(XegerUtils.expandShorthandClasses("[\\D]")).isEqualTo("[\\D]");
+        assertThat(XegerUtils.expandShorthandClasses("[\\W\\S]")).isEqualTo("[\\W\\S]");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_outsideClassUnaffectedAfterClass() {
+        // The in-class flag must reset at ']' so later shorthands still get the bracketed form.
+        assertThat(XegerUtils.expandShorthandClasses("[\\d]\\d")).isEqualTo("[0-9][0-9]");
+    }
+
+    @Test
+    public void testExpandShorthandClasses_inClassGeneratedStringsMatchPattern() {
+        String[] patterns = {"[\\d.]{4}", "[\\w]{5}", "[a\\d]{3}"};
+        for (String regex : patterns) {
+            Xeger xeger = new Xeger(regex);
+            for (int i = 0; i < 50; i++) {
+                String generated = xeger.generate();
+                assertThat(generated).as("Pattern: " + regex).matches(regex);
+            }
+        }
+    }
+
+    @Test
     public void testExpandShorthandClasses_generatedStringsMatchPattern() {
         String[][] cases = {
             {"\\d{3}", "\\d{3}"},
